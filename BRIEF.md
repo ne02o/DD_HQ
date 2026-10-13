@@ -8,7 +8,7 @@ Deployed on the VPS at `hq.digitaldive.agency`. Built in phases; each phase stop
 
 ---
 
-## Phase 1 — documents (current)
+## Phase 1 — documents (done)
 
 The quotation and invoice must look exactly right before anything else is built.
 
@@ -72,16 +72,26 @@ Everything between header and footer stays coded and data-driven.
   currency separately.
 - GST rate lives in Settings (default 8%), overridable per document, applied only to taxable line items.
 
-## Phase 2 — data layer
+## Phase 2 — data layer (done)
 
-Prisma + SQLite. Client, Project, Quotation (`draft → sent → accepted | declined | expired`, expiry derived
+SQLite via **better-sqlite3** (chosen over Prisma: no engine binaries to download, synchronous
+transactions make numbering-on-issue simple and safe, and it suits a two-user tool). Schema and
+migrations live in `src/lib/db/index.ts`; the database file is `data/hq.db` (or `DATABASE_PATH`). Client, Project, Quotation (`draft → sent → accepted | declined | expired`, expiry derived
 from valid-until), Invoice (`draft → sent → paid | cancelled`; overdue and partially-paid are derived),
 LineItem (description, quantity, unit price, taxable, sort order), Payment (many per invoice; invoice flips
 to paid when covered), Expense, Settings (company details, bank block, default currency, GST rate, terms,
 counters). A services catalogue (name, description, default rate, taxable) whose values are copied into
 line items as a snapshot, never linked live.
 
-## Phase 3 — app, dashboard, login
+## Phase 3 — app, dashboard, login (in progress)
+
+Done: dark minimal app shell (sidebar: Dashboard, Invoices, Quotations, Clients, Expenses, Settings),
+dashboard per currency (invoiced, received, outstanding/overdue, expenses this month; six-month
+received vs expenses chart; needs-attention list; recent invoices), lists, and document view with print.
+Next: create/edit forms, issue and record-payment actions, Settings editing, login for the two partners.
+Do not deploy publicly before login exists.
+
+Original scope:
 
 Screens to create and manage clients, quotations, invoices, payments and expenses; quotation → invoice in
 one click; print to PDF from the browser. Financial dashboard per currency: invoiced, received,

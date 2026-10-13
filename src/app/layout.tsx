@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import '@fontsource-variable/source-sans-3'
+import '@fontsource-variable/martian-mono/wdth.css'
 import './globals.css'
 
 export const metadata: Metadata = {

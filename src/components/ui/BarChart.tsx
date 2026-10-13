@@ -18,19 +18,19 @@ export default function BarChart({ months, currency }: { months: MonthBar[]; cur
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Received and expenses in ${currency}, last six months`}>
         {[0, 1, 2, 3, 4].map((i) => {
           const v = (top / 4) * i
-          return <line key={i} x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="#2B2C31" strokeWidth={1} />
+          return <line key={i} x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="#E4E4E7" strokeWidth={1} style={{ stroke: 'var(--grid)' }} />
         })}
         {months.map((m, i) => {
           const cx = padL + slot * i + slot / 2
           return (
             <g key={m.key}>
-              <rect x={cx - bw - 2} y={y(m.received)} width={bw} height={Math.max(0, padT + plotH - y(m.received))} rx="3" fill="#FF5A1F">
+              <rect x={cx - bw - 2} y={y(m.received)} width={bw} height={Math.max(0, padT + plotH - y(m.received))} rx="3" fill="#FF5A1F" style={{ fill: 'var(--bar-in)' }}>
                 <title>{`${m.label}: received ${currency} ${formatMoney(m.received)}`}</title>
               </rect>
-              <rect x={cx + 2} y={y(m.expenses)} width={bw} height={Math.max(0, padT + plotH - y(m.expenses))} rx="3" fill="#5B5A57">
+              <rect x={cx + 2} y={y(m.expenses)} width={bw} height={Math.max(0, padT + plotH - y(m.expenses))} rx="3" fill="#C9C9CF" style={{ fill: 'var(--bar-out)' }}>
                 <title>{`${m.label}: expenses ${currency} ${formatMoney(m.expenses)}`}</title>
               </rect>
-              <text x={cx} y={H - 8} textAnchor="middle" fill="#85837D" fontSize="15">{m.label}</text>
+              <text x={cx} y={H - 8} textAnchor="middle" fill="#8A8A93" fontSize="15" style={{ fill: 'var(--fg-3)' }}>{m.label}</text>
             </g>
           )
         })}

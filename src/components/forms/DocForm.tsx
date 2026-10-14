@@ -5,7 +5,7 @@ import { saveDocAction, type FormState } from '@/app/(app)/actions'
 import { computeTotals } from '@/lib/totals'
 import { formatMoney, formatRate } from '@/lib/format'
 import { moneyToInput, parseMoney, parseQuantity, parseRate } from '@/lib/money-input'
-import type { Currency, LineItem } from '@/lib/types'
+import { BIZ_LINES, type BizLine, type Currency, type LineItem } from '@/lib/types'
 
 type Row = { key: number; description: string; quantity: string; unitPrice: string; taxable: boolean }
 export type DocFormValues = {
@@ -14,6 +14,7 @@ export type DocFormValues = {
   issueDate: string
   secondDate: string // due date (invoice) or valid until (quotation)
   currency: Currency
+  line: BizLine
   gstRateBps: number
   notes: string
   terms: string
@@ -103,6 +104,18 @@ export default function DocForm({
             <span>{isInvoice ? 'Due date' : 'Valid until'}</span>
             <input type="date" name={isInvoice ? 'dueDate' : 'validUntil'} defaultValue={values.secondDate} required />
           </label>
+          <div className="field">
+            <span id="line-label">Type</span>
+            <div className="seg seg--field" role="radiogroup" aria-labelledby="line-label">
+              {BIZ_LINES.map((l) => (
+                <label key={l.value} className="seg__opt">
+                  <input type="radio" name="line" value={l.value} defaultChecked={values.line === l.value} />
+                  <span>{l.label}</span>
+                </label>
+              ))}
+            </div>
+            <small>For your reports only. Not printed.</small>
+          </div>
           <label className="field">
             <span>Currency</span>
             <select name="currency" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>

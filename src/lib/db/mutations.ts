@@ -2,7 +2,7 @@ import { getDb } from './index'
 import { getSettings, issueDocument, listDocuments, todayMV, type Kind } from './queries'
 import { computeTotals } from '@/lib/totals'
 import { addDays } from '@/lib/money-input'
-import type { Currency, LineItem } from '@/lib/types'
+import type { BizLine, Currency, LineItem } from '@/lib/types'
 
 /**
  * Every write goes through here. The rules from BRIEF.md are enforced at this layer, so no form or
@@ -51,6 +51,7 @@ export type DocInput = {
   dueDate: string | null      // invoices
   validUntil: string | null   // quotations
   currency: Currency
+  line: BizLine               // Studio or LED, for separate reporting
   gstRateBps: number
   notes: string
   terms: string               // quotations, one per line
@@ -63,7 +64,7 @@ export function getDocRecord(id: number): DocRecord | null {
   const db = getDb()
   const r = db.prepare('SELECT * FROM documents WHERE id = ?').get(id) as {
     id: number; kind: Kind; number: number | null; status: string; client_id: number; issue_date: string; due_date: string | null
-    valid_until: string | null; currency: Currency; gst_rate_bps: number; notes: string; terms: string; source_quotation_id: number | null
+    valid_until: string | null; currency: Currency; line: BizLine; gst_rate_bps: number; notes: string; terms: string; source_quotation_id: number | null
   } | undefined
   if (!r) return null
   const items = (db.prepare('SELECT description, quantity, unit_price, taxable FROM line_items WHERE document_id = ? ORDER BY sort, id').all(id) as
@@ -71,7 +72,7 @@ export function getDocRecord(id: number): DocRecord | null {
     .map((i) => ({ description: i.description, quantity: i.quantity, unitPrice: i.unit_price, taxable: !!i.taxable }))
   return {
     id: r.id, kind: r.kind, number: r.number, status: r.status, clientId: r.client_id, issueDate: r.issue_date,
-    dueDate: r.due_date, validUntil: r.valid_until, currency: r.currency, gstRateBps: r.gst_rate_bps,
+    dueDate: r.due_date, validUntil: r.valid_until, currency: r.currency, line: r.line, gstRateBps: r.gst_rate_bps,
     notes: r.notes, terms: r.terms, items, sourceQuotationId: r.source_quotation_id,
   }
 }
@@ -86,6 +87,7 @@ export function newDocDefaults(kind: Kind): Omit<DocInput, 'clientId'> & { clien
     dueDate: kind === 'invoice' ? addDays(today, s.payment_terms_days) : null,
     validUntil: kind === 'quotation' ? addDays(today, s.quotation_valid_days) : null,
     currency: s.default_currency,
+    line: 'studio',
     gstRateBps: s.gst_rate_bps,
     notes: '',
     terms: kind === 'quotation' ? s.default_terms : '',
@@ -106,16 +108,16 @@ export function saveDraft(kind: Kind, id: number | null, d: DocInput): number {
   return db.transaction(() => {
     if (!db.prepare('SELECT 1 FROM clients WHERE id = ?').get(d.clientId)) throw new RuleError('Pick a client.')
     const fields = [d.clientId, d.issueDate, kind === 'invoice' ? d.dueDate : null, kind === 'quotation' ? d.validUntil : null,
-      d.currency, d.gstRateBps, d.notes.trim(), kind === 'quotation' ? d.terms.trim() : '']
+      d.currency, d.line, d.gstRateBps, d.notes.trim(), kind === 'quotation' ? d.terms.trim() : '']
     let docId = id
     if (docId) {
       const cur = db.prepare('SELECT kind, status, number FROM documents WHERE id = ?').get(docId) as { kind: Kind; status: string; number: number | null } | undefined
       if (!cur || cur.kind !== kind) throw new RuleError('Document not found.')
       if (cur.status !== 'draft' || cur.number != null) throw new RuleError('Only drafts can be edited. Issued documents are locked.')
-      db.prepare('UPDATE documents SET client_id=?, issue_date=?, due_date=?, valid_until=?, currency=?, gst_rate_bps=?, notes=?, terms=? WHERE id=?').run(...fields, docId)
+      db.prepare('UPDATE documents SET client_id=?, issue_date=?, due_date=?, valid_until=?, currency=?, line=?, gst_rate_bps=?, notes=?, terms=? WHERE id=?').run(...fields, docId)
     } else {
-      docId = Number(db.prepare(`INSERT INTO documents (kind, client_id, issue_date, due_date, valid_until, currency, gst_rate_bps, notes, terms)
-        VALUES (?,?,?,?,?,?,?,?,?)`).run(kind, ...fields).lastInsertRowid)
+      docId = Number(db.prepare(`INSERT INTO documents (kind, client_id, issue_date, due_date, valid_until, currency, line, gst_rate_bps, notes, terms)
+        VALUES (?,?,?,?,?,?,?,?,?,?)`).run(kind, ...fields).lastInsertRowid)
     }
     writeItems(docId, d.items)
     return docId
@@ -218,10 +220,10 @@ export function deletePayment(paymentId: number): number | null {
 
 // ------------------------------------------------------------------ expenses
 
-export function addExpense(e: { date: string; category: string; description: string; amount: number; currency: Currency; note: string }) {
+export function addExpense(e: { date: string; category: string; description: string; amount: number; currency: Currency; line: BizLine; note: string }) {
   if (e.amount <= 0) throw new RuleError('Enter the amount.')
-  getDb().prepare('INSERT INTO expenses (date, category, description, amount, currency, note) VALUES (?,?,?,?,?,?)')
-    .run(e.date, e.category.trim() || 'General', e.description.trim(), e.amount, e.currency, e.note.trim())
+  getDb().prepare('INSERT INTO expenses (date, category, description, amount, currency, line, note) VALUES (?,?,?,?,?,?,?)')
+    .run(e.date, e.category.trim() || 'General', e.description.trim(), e.amount, e.currency, e.line, e.note.trim())
 }
 
 export function deleteExpense(id: number) {

@@ -1,6 +1,6 @@
 import { getDb } from './index'
 import { computeTotals } from '@/lib/totals'
-import type { Company, Currency, InvoiceData, LineItem, QuotationData } from '@/lib/types'
+import type { BizLine, Company, Currency, InvoiceData, LineItem, QuotationData } from '@/lib/types'
 
 export type Kind = 'invoice' | 'quotation'
 export type InvoiceStatus = 'draft' | 'sent' | 'partly paid' | 'overdue' | 'paid' | 'cancelled'
@@ -15,7 +15,7 @@ type SettingsRow = {
 }
 
 type DocRow = {
-  id: number; kind: Kind; number: number | null; client_id: number; issue_date: string
+  id: number; kind: Kind; line: BizLine; number: number | null; client_id: number; issue_date: string
   due_date: string | null; valid_until: string | null; currency: Currency; gst_rate_bps: number
   status: string; notes: string; terms: string; source_quotation_id: number | null
   client_name: string; client_address: string; client_tin: string | null; quotation_ref: number | null
@@ -95,7 +95,7 @@ export function quotationStatus(stored: string, validUntil: string | null, today
 
 export type DocSummary = {
   id: number; kind: Kind; number: number | null; clientId: number; clientName: string; issueDate: string
-  dueDate: string | null; validUntil: string | null; currency: Currency
+  dueDate: string | null; validUntil: string | null; currency: Currency; line: BizLine
   total: number; paid: number; balance: number; status: InvoiceStatus | QuotationStatus
 }
 
@@ -112,7 +112,7 @@ export function listDocuments(kind: Kind, opts: { limit?: number } = {}): DocSum
     const p = paid.get(r.id) ?? 0
     return {
       id: r.id, kind: r.kind, number: r.number, clientId: r.client_id, clientName: r.client_name, issueDate: r.issue_date,
-      dueDate: r.due_date, validUntil: r.valid_until, currency: r.currency, total, paid: p,
+      dueDate: r.due_date, validUntil: r.valid_until, currency: r.currency, line: r.line, total, paid: p,
       balance: Math.max(0, total - p),
       status: kind === 'invoice' ? invoiceStatus(r.status, total, p, r.due_date, today) : quotationStatus(r.status, r.valid_until, today),
     }
@@ -172,10 +172,10 @@ export function listClients(): ClientSummary[] {
     FROM clients c ORDER BY c.name COLLATE NOCASE`).all()) as ClientSummary[]
 }
 
-export type ExpenseRow = { id: number; date: string; category: string; description: string; amount: number; currency: Currency }
+export type ExpenseRow = { id: number; date: string; category: string; description: string; amount: number; currency: Currency; line: BizLine }
 
 export function listExpenses(): ExpenseRow[] {
-  return getDb().prepare('SELECT id, date, category, description, amount, currency FROM expenses ORDER BY date DESC, id DESC').all() as ExpenseRow[]
+  return getDb().prepare('SELECT id, date, category, description, amount, currency, line FROM expenses ORDER BY date DESC, id DESC').all() as ExpenseRow[]
 }
 
 // ---------------------------------------------------------------- dashboard
@@ -184,6 +184,7 @@ export type MonthBar = { key: string; label: string; received: number; expenses:
 
 export type Dashboard = {
   currency: Currency
+  line: BizLine | null
   monthLabel: string
   invoicedThisMonth: number
   receivedThisMonth: number
@@ -200,12 +201,16 @@ export type Dashboard = {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-/** Every figure is for one currency only. MVR and USD are never added together. */
-export function getDashboard(currency: Currency): Dashboard {
+/**
+ * Every figure is for one currency only; MVR and USD are never added together.
+ * `line` narrows everything to Studio or LED work; null means both.
+ */
+export function getDashboard(currency: Currency, line: BizLine | null = null): Dashboard {
   const db = getDb()
   const today = todayMV()
   const ym = today.slice(0, 7)
-  const invoices = listDocuments('invoice').filter((d) => d.currency === currency)
+  const inLine = (l: BizLine) => line == null || l === line
+  const invoices = listDocuments('invoice').filter((d) => d.currency === currency && inLine(d.line))
   const live = invoices.filter((d) => d.status !== 'draft' && d.status !== 'cancelled')
 
   const invoicedThisMonth = live.filter((d) => d.issueDate.startsWith(ym)).reduce((s, d) => s + d.total, 0)
@@ -213,9 +218,12 @@ export function getDashboard(currency: Currency): Dashboard {
   const overdue = open.filter((d) => d.status === 'overdue')
 
   const sumBy = (sql: string, ...args: unknown[]) => ((db.prepare(sql).get(...args) as { s: number | null }).s ?? 0)
+  const lineSql = line ? ' AND line = ?' : ''
+  const lineArg = line ? [line] : []
   const receivedFor = (prefix: string) => sumBy(
-    `SELECT SUM(p.amount) AS s FROM payments p JOIN documents d ON d.id = p.invoice_id WHERE d.currency = ? AND p.date LIKE ?`, currency, `${prefix}%`)
-  const expensesFor = (prefix: string) => sumBy(`SELECT SUM(amount) AS s FROM expenses WHERE currency = ? AND date LIKE ?`, currency, `${prefix}%`)
+    `SELECT SUM(p.amount) AS s FROM payments p JOIN documents d ON d.id = p.invoice_id WHERE d.currency = ? AND p.date LIKE ?${line ? ' AND d.line = ?' : ''}`,
+    currency, `${prefix}%`, ...lineArg)
+  const expensesFor = (prefix: string) => sumBy(`SELECT SUM(amount) AS s FROM expenses WHERE currency = ? AND date LIKE ?${lineSql}`, currency, `${prefix}%`, ...lineArg)
 
   const [y, m] = ym.split('-').map(Number)
   const months: MonthBar[] = []
@@ -225,10 +233,11 @@ export function getDashboard(currency: Currency): Dashboard {
     months.push({ key, label: MONTHS[dt.getUTCMonth()], received: receivedFor(key), expenses: expensesFor(key) })
   }
 
-  const openQuotations = listDocuments('quotation').filter((q) => q.currency === currency && q.status === 'sent').length
+  const openQuotations = listDocuments('quotation').filter((q) => q.currency === currency && inLine(q.line) && q.status === 'sent').length
 
   return {
     currency,
+    line,
     monthLabel: `${FULL[m - 1]} ${y}`,
     invoicedThisMonth,
     receivedThisMonth: receivedFor(ym),

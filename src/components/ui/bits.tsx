@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { Currency } from '@/lib/types'
+import type { BizLine, Currency } from '@/lib/types'
 import { datePieces, formatMoney } from '@/lib/format'
 
 /** Money as it appears in the app: currency code small, figure in the brand mono face. */
@@ -32,18 +32,6 @@ export function ShortDate({ iso }: { iso: string | null }) {
   return <span className="nowrap">{p.day} {month.slice(0, 3)} {year}</span>
 }
 
-export function CurrencySwitch({ value, base }: { value: Currency; base: string }) {
-  return (
-    <div className="seg" role="group" aria-label="Currency">
-      {(['MVR', 'USD'] as Currency[]).map((c) => (
-        <Link key={c} href={c === 'MVR' ? base : `${base}?ccy=${c}`} className={c === value ? 'is-on' : undefined} aria-pressed={c === value}>
-          {c}
-        </Link>
-      ))}
-    </div>
-  )
-}
-
 export function PageHead({ title, sub, children }: { title: string; sub?: string; children?: React.ReactNode }) {
   return (
     <header className="phead">
@@ -58,4 +46,20 @@ export function PageHead({ title, sub, children }: { title: string; sub?: string
 
 export function Empty({ children }: { children: React.ReactNode }) {
   return <div className="empty">{children}</div>
+}
+
+/** Small LED marker in lists. Studio is the default, so it shows nothing. */
+export function LineTag({ line }: { line: BizLine }) {
+  return line === 'led' ? <span className="tag-led" title="LED">LED</span> : null
+}
+
+/** A row of linked options, e.g. currency or Studio/LED filters. */
+export function SegLinks({ label, options }: { label: string; options: { href: string; label: string; on: boolean }[] }) {
+  return (
+    <div className="seg" role="group" aria-label={label}>
+      {options.map((o) => (
+        <Link key={o.label} href={o.href} className={o.on ? 'is-on' : undefined} aria-pressed={o.on}>{o.label}</Link>
+      ))}
+    </div>
+  )
 }

@@ -119,6 +119,13 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX idx_sessions_user ON sessions(user_id);
   `,
+  // 3: Studio / LED tag on documents and expenses, for separate reporting. Existing rows become Studio.
+  `
+  ALTER TABLE documents ADD COLUMN line TEXT NOT NULL DEFAULT 'studio' CHECK (line IN ('studio','led'));
+  ALTER TABLE expenses ADD COLUMN line TEXT NOT NULL DEFAULT 'studio' CHECK (line IN ('studio','led'));
+  CREATE INDEX idx_documents_line ON documents(line);
+  CREATE INDEX idx_expenses_line ON expenses(line);
+  `,
 ]
 
 let instance: Database.Database | null = null

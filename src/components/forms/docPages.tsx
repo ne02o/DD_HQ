@@ -25,7 +25,7 @@ export async function NewDocPage({ kind, searchParams }: { kind: Kind; searchPar
         newClientHref={`/clients/new?return=${encodeURIComponent(`${base(kind)}/new`)}`}
         values={{
           id: null, clientId, issueDate: d.issueDate, secondDate: (kind === 'invoice' ? d.dueDate : d.validUntil) ?? d.issueDate,
-          currency: d.currency, gstRateBps: d.gstRateBps, notes: d.notes, terms: d.terms, items: d.items,
+          currency: d.currency, line: d.line, gstRateBps: d.gstRateBps, notes: d.notes, terms: d.terms, items: d.items,
         }}
       />
     </>
@@ -48,7 +48,7 @@ export async function EditDocPage({ kind, params }: { kind: Kind; params: Promis
         newClientHref={`/clients/new?return=${encodeURIComponent(`${base(kind)}/${id}/edit`)}`}
         values={{
           id, clientId: d.clientId, issueDate: d.issueDate, secondDate: (kind === 'invoice' ? d.dueDate : d.validUntil) ?? d.issueDate,
-          currency: d.currency, gstRateBps: d.gstRateBps, notes: d.notes, terms: d.terms,
+          currency: d.currency, line: d.line, gstRateBps: d.gstRateBps, notes: d.notes, terms: d.terms,
           items: d.items.length ? d.items : [{ description: '', quantity: 1, unitPrice: 0, taxable: true }],
         }}
       />

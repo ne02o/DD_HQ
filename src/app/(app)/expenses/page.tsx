@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/auth'
 import { getSettings, listExpenses, todayMV } from '@/lib/db/queries'
 import { expenseCategories } from '@/lib/db/mutations'
-import { Empty, Money, PageHead, ShortDate } from '@/components/ui/bits'
+import { Empty, LineTag, Money, PageHead, ShortDate } from '@/components/ui/bits'
 import { AddExpense, DeleteExpense } from '@/components/forms/ExpenseForms'
 
 export const dynamic = 'force-dynamic'
@@ -23,7 +23,7 @@ export default async function ExpensesPage() {
                 {rows.map((e) => (
                   <tr key={e.id}>
                     <td><ShortDate iso={e.date} /></td>
-                    <td>{e.category}</td>
+                    <td>{e.category} <LineTag line={e.line} /></td>
                     <td>{e.description}</td>
                     <td className="r"><Money minor={e.amount} currency={e.currency} /></td>
                     <td className="r"><DeleteExpense id={e.id} /></td>

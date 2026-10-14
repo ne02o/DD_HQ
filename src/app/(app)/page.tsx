@@ -1,28 +1,44 @@
 import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { getDashboard, listDocuments } from '@/lib/db/queries'
-import type { Currency } from '@/lib/types'
-import { formatDocNumber } from '@/lib/format'
+import { isBizLine, type BizLine, type Currency } from '@/lib/types'
+import { formatDocNumber, formatMoney } from '@/lib/format'
 import BarChart from '@/components/ui/BarChart'
-import { CurrencySwitch, Empty, Money, PageHead, ShortDate, Status } from '@/components/ui/bits'
+import { Empty, LineTag, Money, PageHead, SegLinks, ShortDate, Status } from '@/components/ui/bits'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Dashboard · Digital Dive HQ' }
 
-export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ ccy?: string }> }) {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ ccy?: string; line?: string }> }) {
   await requireUser()
-  const { ccy } = await searchParams
-  const currency: Currency = ccy === 'USD' ? 'USD' : 'MVR'
-  const d = getDashboard(currency)
+  const sp = await searchParams
+  const currency: Currency = sp.ccy === 'USD' ? 'USD' : 'MVR'
+  const line: BizLine | null = isBizLine(sp.line) ? sp.line : null
+  const d = getDashboard(currency, line)
+  const inLine = (l: BizLine) => line == null || l === line
   const attention = [
-    ...listDocuments('invoice').filter((i) => i.currency === currency && i.status === 'overdue'),
-    ...listDocuments('quotation').filter((q) => q.currency === currency && q.status === 'sent'),
+    ...listDocuments('invoice').filter((i) => i.currency === currency && inLine(i.line) && i.status === 'overdue'),
+    ...listDocuments('quotation').filter((q) => q.currency === currency && inLine(q.line) && q.status === 'sent'),
   ]
+  const href = (c: Currency, l: BizLine | null) => {
+    const q = new URLSearchParams()
+    if (c !== 'MVR') q.set('ccy', c)
+    if (l) q.set('line', l)
+    const qs = q.toString()
+    return qs ? `/?${qs}` : '/'
+  }
+  const scope = line === 'led' ? 'LED' : line === 'studio' ? 'Studio' : 'All work'
+  const net = d.receivedThisMonth - d.expensesThisMonth
 
   return (
     <>
-      <PageHead title="Dashboard" sub={`${d.monthLabel}, in ${currency}`}>
-        <CurrencySwitch value={currency} base="/" />
+      <PageHead title="Dashboard" sub={`${d.monthLabel} · ${scope} · ${currency}`}>
+        <SegLinks label="Business line" options={[
+          { label: 'All', href: href(currency, null), on: line == null },
+          { label: 'Studio', href: href(currency, 'studio'), on: line === 'studio' },
+          { label: 'LED', href: href(currency, 'led'), on: line === 'led' },
+        ]} />
+        <SegLinks label="Currency" options={(['MVR', 'USD'] as Currency[]).map((c) => ({ label: c, href: href(c, line), on: c === currency }))} />
         <Link href="/quotations/new" className="btn">New quotation</Link>
         <Link href="/invoices/new" className="btn btn--primary">New invoice</Link>
       </PageHead>
@@ -50,6 +66,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </div>
       </section>
 
+      <p className={`net ${net < 0 ? 'net--neg' : 'net--pos'}`}>
+        Received minus expenses this month:{' '}
+        <strong><span className="money__ccy">{currency}</span> {net < 0 ? '−' : ''}{formatMoney(Math.abs(net))}</strong>
+      </p>
+
       <section className="grid2">
         <div className="panel">
           <h2 className="panel__h">Received vs expenses, last six months</h2>
@@ -58,7 +79,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div className="panel">
           <h2 className="panel__h">Needs attention</h2>
           {attention.length === 0 ? (
-            <Empty>All clear. No overdue invoices or open quotes in {currency}.</Empty>
+            <Empty>All clear. No overdue invoices or open quotes{line ? ` for ${scope}` : ''} in {currency}.</Empty>
           ) : (
             <ul className="todo">
               {attention.map((a) => (
@@ -86,7 +107,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <Link href="/invoices" className="link">All invoices</Link>
         </div>
         {d.recent.length === 0 ? (
-          <Empty>No {currency} invoices yet.</Empty>
+          <Empty>No {line ? `${scope} ` : ''}{currency} invoices yet.</Empty>
         ) : (
           <div className="tablewrap">
             <table className="tbl">
@@ -97,7 +118,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 {d.recent.map((r) => (
                   <tr key={r.id}>
                     <td><Link href={`/invoices/${r.id}`} className="rowlink">{formatDocNumber(r.number)}</Link></td>
-                    <td>{r.clientName}</td>
+                    <td>{r.clientName} <LineTag line={r.line} /></td>
                     <td><ShortDate iso={r.issueDate} /></td>
                     <td><ShortDate iso={r.dueDate} /></td>
                     <td className="r"><Money minor={r.total} currency={r.currency} /></td>

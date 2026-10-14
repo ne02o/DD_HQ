@@ -93,4 +93,12 @@ for (let k = 0; k < 6; k++) {
 addExp.run(shift(-60), 'Equipment', 'Camera lens', 1450000, 'MVR')
 addExp.run(shift(-20), 'Software', 'Font licence', 12000, 'USD')
 
+// LED resale: tag the airtime invoices, and add the monthly fixed fee to the screen owner.
+db.prepare("UPDATE documents SET line = 'led' WHERE id IN (SELECT document_id FROM line_items WHERE description LIKE 'LED%' OR description LIKE '%airtime%')").run()
+invoice(clients[1], -60, 'MVR', [['LED airtime, Malé screen (2 weeks)', 2, 900000]], [-50])
+invoice(clients[2], -18, 'MVR', [['LED airtime, Malé screen (4 weeks)', 4, 850000]], [-8])
+db.prepare("UPDATE documents SET line = 'led' WHERE id IN (SELECT document_id FROM line_items WHERE description LIKE 'LED%')").run()
+for (let k = 0; k < 6; k++) addExp.run(shift(-k * 30 - 1), 'Screen owner', 'LED airtime, fixed monthly fee', 2000000, 'MVR')
+db.prepare("UPDATE expenses SET line = 'led' WHERE category = 'Screen owner'").run()
+
 console.log('Seeded sample data:', (db.prepare('SELECT COUNT(*) AS n FROM documents').get() as { n: number }).n, 'documents')

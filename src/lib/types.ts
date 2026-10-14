@@ -1,5 +1,10 @@
 export type Currency = 'MVR' | 'USD'
 
+/** Which part of the business a document or expense belongs to. Never printed on documents. */
+export type BizLine = 'studio' | 'led'
+export const BIZ_LINES: { value: BizLine; label: string }[] = [{ value: 'studio', label: 'Studio' }, { value: 'led', label: 'LED' }]
+export const isBizLine = (v: unknown): v is BizLine => v === 'studio' || v === 'led'
+
 /** One row on a document. Money is always integer minor units (laari / cents). */
 export type LineItem = {
   description: string

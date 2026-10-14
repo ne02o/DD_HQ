@@ -1,6 +1,6 @@
 'use client'
 import { addExpenseAction, deleteExpenseAction } from '@/app/(app)/actions'
-import type { Currency } from '@/lib/types'
+import { BIZ_LINES, type Currency } from '@/lib/types'
 import ActForm from './ActForm'
 
 export function AddExpense({ today, categories, defaultCurrency }: { today: string; categories: string[]; defaultCurrency: Currency }) {
@@ -25,6 +25,17 @@ export function AddExpense({ today, categories, defaultCurrency }: { today: stri
           <span>Amount</span>
           <input type="text" inputMode="decimal" name="amount" placeholder="0.00" required />
         </label>
+        <div className="field">
+          <span id="exp-line">Type</span>
+          <div className="seg seg--field" role="radiogroup" aria-labelledby="exp-line">
+            {BIZ_LINES.map((l) => (
+              <label key={l.value} className="seg__opt">
+                <input type="radio" name="line" value={l.value} defaultChecked={l.value === 'studio'} />
+                <span>{l.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
         <label className="field">
           <span>Currency</span>
           <select name="currency" defaultValue={defaultCurrency}>

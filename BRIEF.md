@@ -92,6 +92,11 @@ mark quotes declined/reopen, turn a quote into a draft invoice; record and remov
 overpayment); add/remove expenses; edit Settings including next numbers (never below one already used).
 Dashboard per currency. Light/dark themes. A4 pages shrink to fit phones; print is unaffected.
 
+Studio / LED: every quotation, invoice and expense has a Type (Studio or LED), default Studio, never
+printed. It carries over on duplicate and quote → invoice. Same numbering for both. The dashboard
+filters All / Studio / LED (kept when switching currency) and shows received minus expenses. LED is
+resold airtime: the fixed fee to the screen owner is recorded as an LED expense.
+
 Not built yet: credit notes (corrections to a sent invoice), uploadable header/footer artwork, a
 services catalogue, CSV export.
 

@@ -7,7 +7,7 @@ import {
   deletePayment, duplicate, issue, saveClient, saveDraft, setQuotationOutcome, updateSettings, type DocInput,
 } from '@/lib/db/mutations'
 import { isIsoDate, parseMoney, parseQuantity, parseRate } from '@/lib/money-input'
-import type { Currency, LineItem } from '@/lib/types'
+import { isBizLine, type Currency, type LineItem } from '@/lib/types'
 import type { Kind } from '@/lib/db/queries'
 
 export type FormState = { error: string | null; ok?: string | null }
@@ -81,6 +81,8 @@ function parseDoc(kind: Kind, f: FormData): { data?: DocInput; error?: string } 
   if (!ccy) return { error: 'Pick MVR or USD.' }
   const rate = parseRate(str(f, 'gstRate', 6))
   if (rate == null) return { error: 'The GST rate should be a number like 8.' }
+  const line = str(f, 'line', 10)
+  if (!isBizLine(line)) return { error: 'Pick Studio or LED.' }
 
   let raw: RawItem[]
   try { raw = JSON.parse(str(f, 'items', 200_000)) } catch { return { error: 'The line items couldn’t be read. Reload the page and try again.' } }
@@ -103,7 +105,7 @@ function parseDoc(kind: Kind, f: FormData): { data?: DocInput; error?: string } 
 
   return {
     data: {
-      clientId, issueDate, currency: ccy, gstRateBps: rate, items,
+      clientId, issueDate, currency: ccy, line, gstRateBps: rate, items,
       dueDate: kind === 'invoice' ? second : null,
       validUntil: kind === 'quotation' ? second : null,
       notes: str(f, 'notes', 4000),
@@ -199,7 +201,9 @@ export async function addExpenseAction(_p: FormState, f: FormData): Promise<Form
   if (!isIsoDate(date)) return { error: 'Enter the date.' }
   const ccy = currency(str(f, 'currency', 3))
   if (!ccy) return { error: 'Pick MVR or USD.' }
-  const res = await run(() => addExpense({ date, category: str(f, 'category', 60), description, amount, currency: ccy, note: '' }))
+  const line = str(f, 'line', 10)
+  if (!isBizLine(line)) return { error: 'Pick Studio or LED.' }
+  const res = await run(() => addExpense({ date, category: str(f, 'category', 60), description, amount, currency: ccy, line, note: '' }))
   if (res.error) return res
   refreshAll()
   return { error: null, ok: 'Expense added.' }

@@ -14,7 +14,7 @@ Runs next to the website (dd-web on port 3001). HQ uses port 3010.
 ## First install
 
 ```bash
-apt install -y sqlite3
+apt install -y sqlite3 build-essential   # build-essential: compiles better-sqlite3 if no ready-made build matches
 mkdir -p /var/lib/dd-hq /var/backups/dd-hq
 git clone https://<TOKEN>@github.com/ne02o/DD_HQ.git /var/www/dd-hq
 cd /var/www/dd-hq

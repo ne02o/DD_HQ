@@ -1,7 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { requireUser } from '@/lib/auth'
+import { changePassword, requireUser } from '@/lib/auth'
 import {
   RuleError, addExpense, addPayment, cancelInvoice, convertToInvoice, deleteClient, deleteDraft, deleteExpense,
   deletePayment, duplicate, issue, saveClient, saveDraft, setQuotationOutcome, updateSettings, type DocInput,
@@ -251,4 +251,18 @@ export async function saveSettingsAction(_p: FormState, f: FormData): Promise<Fo
   if (res.error) return res
   refreshAll()
   return { error: null, ok: 'Settings saved. New documents will use them.' }
+}
+
+// ------------------------------------------------------------------ account
+
+export async function changePasswordAction(_p: FormState, f: FormData): Promise<FormState> {
+  const user = await requireUser()
+  const current = String(f.get('current') ?? '')
+  const next = String(f.get('next') ?? '')
+  const again = String(f.get('again') ?? '')
+  if (!current || !next) return { error: 'Fill in your current and new password.' }
+  if (next !== again) return { error: 'The two new passwords don’t match.' }
+  const res = await changePassword(user.id, current, next.slice(0, 200))
+  if (!res.ok) return { error: res.error }
+  return { error: null, ok: 'Password changed. You’re still signed in here; other devices were signed out.' }
 }

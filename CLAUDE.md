@@ -21,6 +21,7 @@ via @fontsource (no Google Fonts fetch at build time).
 - `src/lib/auth.ts` (sessions, login, `requireUser`), `src/lib/password.ts` (scrypt), `src/middleware.ts`
   (no cookie → /login). Every page and every server action calls `requireUser()` itself.
 - `npm run user -- add <email> "<name>"`, `password <email>`, `remove <email>`, `list`.
+- Signed-in users change their own password in Settings (`changePassword`); other sessions are signed out.
 
 ## Writes
 - All writes live in `src/lib/db/mutations.ts`, which enforces the BRIEF rules (drafts only editable,

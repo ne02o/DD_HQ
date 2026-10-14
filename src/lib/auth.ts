@@ -91,3 +91,21 @@ export async function requireUser(): Promise<User> {
   if (!user) redirect('/login')
   return user
 }
+
+/**
+ * Change the signed-in user's password. Checks the current one first, then signs out every other
+ * session for this account (this browser stays signed in).
+ */
+export async function changePassword(userId: number, current: string, next: string): Promise<LoginResult> {
+  if (next.length < 10) return { ok: false, error: 'Use at least 10 characters for the new password.' }
+  const db = getDb()
+  const row = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(userId) as { password_hash: string } | undefined
+  if (!row || !verifyPassword(current, row.password_hash)) return { ok: false, error: 'Your current password isn’t right.' }
+  if (verifyPassword(next, row.password_hash)) return { ok: false, error: 'That’s the same as your current password.' }
+  const token = (await cookies()).get(COOKIE)?.value ?? ''
+  db.transaction(() => {
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(next), userId)
+    db.prepare('DELETE FROM sessions WHERE user_id = ? AND token_hash != ?').run(userId, sha256(token))
+  })()
+  return { ok: true }
+}

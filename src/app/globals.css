@@ -303,8 +303,10 @@ body { background: var(--desk); color: var(--text); font-family: var(--font); }
 }
 .btn:hover { background: var(--hover); }
 .btn:disabled { opacity: 0.55; cursor: default; }
-.app .btn--primary { background: var(--accent); border-color: var(--accent); color: #18181B; }
-.app .btn--primary:hover { background: #FF7A45; border-color: #FF7A45; color: #18181B; }
+/* Main action: solid ink (black in light mode, near-white in dark). Orange is kept for the brand mark,
+   chart and LED tag, so it stays special instead of shouting on every button. */
+.app .btn--primary { background: var(--fg); border-color: var(--fg); color: var(--panel); }
+.app .btn--primary:hover { background: color-mix(in srgb, var(--fg) 84%, var(--panel)); border-color: color-mix(in srgb, var(--fg) 84%, var(--panel)); color: var(--panel); }
 .btn--danger { color: var(--bad); }
 .btn--danger:hover { background: var(--bad-bg); }
 .btn--block { width: 100%; height: 42px; }

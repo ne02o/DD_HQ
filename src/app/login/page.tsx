@@ -12,7 +12,7 @@ export default async function LoginPage() {
     <div className="app app--auth">
       <main className="auth">
         <div className="auth__head">
-          <Mark className="auth__mark" disc="#FF5A1F" glyph="#141416" label={null} />
+          <Mark className="auth__mark" disc="#FF5A1F" glyph="#fff" label={null} />
           <h1>Digital Dive HQ</h1>
           <p>Sign in to continue.</p>
         </div>

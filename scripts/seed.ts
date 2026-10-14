@@ -3,6 +3,8 @@
  *   npm run seed            (refuses if documents already exist)
  *   npm run seed -- --force (wipes and reseeds)
  */
+// Load .env (e.g. DATABASE_PATH on the server) the same way the app does.
+try { process.loadEnvFile('.env') } catch {}
 import { getDb } from '../src/lib/db/index'
 import { issueDocument, todayMV } from '../src/lib/db/queries'
 import { computeTotals } from '../src/lib/totals'

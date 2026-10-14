@@ -7,6 +7,8 @@
  * Passwords are typed at a hidden prompt, never passed on the command line.
  */
 import readline from 'node:readline'
+// Load .env (e.g. DATABASE_PATH on the server) the same way the app does.
+try { process.loadEnvFile('.env') } catch {}
 import { getDb } from '../src/lib/db/index'
 import { hashPassword } from '../src/lib/password'
 

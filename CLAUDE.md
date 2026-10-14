@@ -33,6 +33,7 @@ via @fontsource (no Google Fonts fetch at build time).
 - Never sum across currencies.
 - Run `npm run typecheck` and `npm run build` before finishing.
 
-## Production (planned)
+## Production
+See DEPLOY.md for install, update, backup and restore.
 VPS 209.74.81.212 (SSH port 22022), app at /var/www/dd-hq, PM2 process `dd-hq` on port 3010,
 Nginx + Cloudflare for `hq.digitaldive.agency`.

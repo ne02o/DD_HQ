@@ -94,7 +94,7 @@ export function quotationStatus(stored: string, validUntil: string | null, today
 }
 
 export type DocSummary = {
-  id: number; kind: Kind; number: number | null; clientName: string; issueDate: string
+  id: number; kind: Kind; number: number | null; clientId: number; clientName: string; issueDate: string
   dueDate: string | null; validUntil: string | null; currency: Currency
   total: number; paid: number; balance: number; status: InvoiceStatus | QuotationStatus
 }
@@ -111,7 +111,7 @@ export function listDocuments(kind: Kind, opts: { limit?: number } = {}): DocSum
     const total = computeTotals(items.get(r.id) ?? [], r.gst_rate_bps).total
     const p = paid.get(r.id) ?? 0
     return {
-      id: r.id, kind: r.kind, number: r.number, clientName: r.client_name, issueDate: r.issue_date,
+      id: r.id, kind: r.kind, number: r.number, clientId: r.client_id, clientName: r.client_name, issueDate: r.issue_date,
       dueDate: r.due_date, validUntil: r.valid_until, currency: r.currency, total, paid: p,
       balance: Math.max(0, total - p),
       status: kind === 'invoice' ? invoiceStatus(r.status, total, p, r.due_date, today) : quotationStatus(r.status, r.valid_until, today),

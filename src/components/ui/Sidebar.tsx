@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Mark } from '@/components/documents/parts'
 import ThemeSwitch from './ThemeSwitch'
+import { logoutAction } from '@/app/login/actions'
 
 const NAV = [
   { href: '/', label: 'Dashboard' },
@@ -25,7 +26,7 @@ function Arrow({ current }: { current: boolean }) {
 }
 
 /** Sidebar on desktop. On phones: a slim top bar, and a full-height menu panel over the page. */
-export default function Sidebar() {
+export default function Sidebar({ userName }: { userName: string }) {
   const path = usePathname()
   const [open, setOpen] = useState(false)
   const closeBtn = useRef<HTMLButtonElement>(null)
@@ -67,7 +68,13 @@ export default function Sidebar() {
             </Link>
           ))}
         </nav>
-        <div className="side__foot"><ThemeSwitch /></div>
+        <div className="side__foot">
+          <ThemeSwitch />
+          <form action={logoutAction} className="side__user">
+            <span>{userName}</span>
+            <button type="submit" className="link-btn">Sign out</button>
+          </form>
+        </div>
       </div>
 
       {/* Phones */}
@@ -95,6 +102,10 @@ export default function Sidebar() {
           </nav>
           <div className="mnav__foot">
             <ThemeSwitch />
+            <form action={logoutAction} className="mnav__user">
+              <span>{userName}</span>
+              <button type="submit" tabIndex={open ? 0 : -1}>Sign out</button>
+            </form>
           </div>
         </div>
       </div>

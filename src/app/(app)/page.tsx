@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { requireUser } from '@/lib/auth'
 import { getDashboard, listDocuments } from '@/lib/db/queries'
 import type { Currency } from '@/lib/types'
 import { formatDocNumber } from '@/lib/format'
@@ -9,6 +10,7 @@ export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Dashboard · Digital Dive HQ' }
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ ccy?: string }> }) {
+  await requireUser()
   const { ccy } = await searchParams
   const currency: Currency = ccy === 'USD' ? 'USD' : 'MVR'
   const d = getDashboard(currency)
@@ -21,6 +23,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     <>
       <PageHead title="Dashboard" sub={`${d.monthLabel}, in ${currency}`}>
         <CurrencySwitch value={currency} base="/" />
+        <Link href="/quotations/new" className="btn">New quotation</Link>
+        <Link href="/invoices/new" className="btn btn--primary">New invoice</Link>
       </PageHead>
 
       <section className="kpis" aria-label="This month">

@@ -17,6 +17,17 @@ via @fontsource (no Google Fonts fetch at build time).
   no data fetching inside them.
 - `src/app/preview/` — Phase 1 review page with sample and stress-test data.
 
+## Accounts and auth
+- `src/lib/auth.ts` (sessions, login, `requireUser`), `src/lib/password.ts` (scrypt), `src/middleware.ts`
+  (no cookie → /login). Every page and every server action calls `requireUser()` itself.
+- `npm run user -- add <email> "<name>"`, `password <email>`, `remove <email>`, `list`.
+
+## Writes
+- All writes live in `src/lib/db/mutations.ts`, which enforces the BRIEF rules (drafts only editable,
+  numbers on issue, no overpayment, counters never go down). Throw `RuleError` for user-facing refusals.
+- Server actions are in `src/app/(app)/actions.ts`; forms submit via `onSubmit` + `startTransition` so a
+  refused submit doesn't wipe what was typed.
+
 ## Rules
 - Money is always integer minor units. Totals come from `src/lib/totals.ts`; never compute them inline.
 - Never sum across currencies.

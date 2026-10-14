@@ -5,7 +5,7 @@ import { Empty, Money, ShortDate, Status } from './bits'
 
 export default function DocList({ kind, docs }: { kind: Kind; docs: DocSummary[] }) {
   const base = kind === 'invoice' ? '/invoices' : '/quotations'
-  if (docs.length === 0) return <Empty>No {kind === 'invoice' ? 'invoices' : 'quotations'} yet.</Empty>
+  if (docs.length === 0) return <Empty>No {kind === 'invoice' ? 'invoices' : 'quotations'} yet. <Link href={`${base}/new`} className="link">Create one</Link>.</Empty>
   return (
     <div className="tablewrap">
       <table className="tbl">

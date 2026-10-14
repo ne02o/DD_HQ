@@ -1,9 +1,13 @@
 import Sidebar from '@/components/ui/Sidebar'
+import { requireUser } from '@/lib/auth'
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export const dynamic = 'force-dynamic'
+
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const user = await requireUser()
   return (
     <div className="app">
-      <Sidebar />
+      <Sidebar userName={user.name} />
       <main className="main">{children}</main>
     </div>
   )

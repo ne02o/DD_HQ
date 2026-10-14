@@ -34,12 +34,12 @@ export default function InvoiceDocument({ invoice, company }: { invoice: Invoice
       {invoice.notes && <p className="doc__notes">{invoice.notes}</p>}
 
       <section className="doc__block">
-        <Rows rows={[
+        <Rows rows={([
           ['Vendor TIN Number', company.tin],
           ['Bank', bank.bankName],
           ['Account Name', bank.accountName],
           [`Account Number (${invoice.currency})`, bank.accountNumber],
-        ]} />
+        ] as [string, string][]).filter(([, v]) => v && v.trim())} />
       </section>
 
       <Footer company={company} />

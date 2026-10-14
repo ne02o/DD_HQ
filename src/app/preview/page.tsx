@@ -3,10 +3,13 @@ import QuotationDocument from '@/components/documents/QuotationDocument'
 import { company } from '@/lib/company'
 import { invoiceSample, invoiceStress, quotationDraft, quotationSample } from './samples'
 import PrintButton from './PrintButton'
+import { requireUser } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Document preview · Digital Dive HQ' }
 
-export default function PreviewPage() {
+export default async function PreviewPage() {
+  await requireUser()
   return (
     <>
       <div className="pv-bar">

@@ -83,13 +83,17 @@ to paid when covered), Expense, Settings (company details, bank block, default c
 counters). A services catalogue (name, description, default rate, taxable) whose values are copied into
 line items as a snapshot, never linked live.
 
-## Phase 3 — app, dashboard, login (in progress)
+## Phase 3 — app, dashboard, login (done)
 
-Done: dark minimal app shell (sidebar: Dashboard, Invoices, Quotations, Clients, Expenses, Settings),
-dashboard per currency (invoiced, received, outstanding/overdue, expenses this month; six-month
-received vs expenses chart; needs-attention list; recent invoices), lists, and document view with print.
-Next: create/edit forms, issue and record-payment actions, Settings editing, login for the two partners.
-Do not deploy publicly before login exists.
+Login for the two partners (scrypt passwords, httpOnly session cookie, attempt limiting; accounts are
+managed with `npm run user`). Create/edit clients; draft quotations and invoices with a line-item editor
+and live totals; issue (number assigned then), delete drafts, cancel invoices (number kept), duplicate,
+mark quotes declined/reopen, turn a quote into a draft invoice; record and remove payments (no
+overpayment); add/remove expenses; edit Settings including next numbers (never below one already used).
+Dashboard per currency. Light/dark themes. A4 pages shrink to fit phones; print is unaffected.
+
+Not built yet: credit notes (corrections to a sent invoice), uploadable header/footer artwork, a
+services catalogue, CSV export.
 
 Original scope:
 

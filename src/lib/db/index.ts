@@ -101,6 +101,24 @@ const MIGRATIONS: string[] = [
   VALUES (1, 'Digital Dive Pvt Ltd', 'Malé\nRepublic of Maldives', 'info@digitaldive.agency', 'digitaldive.agency',
           '50% advance to begin work; balance on delivery.\nPrices are valid until the date above.');
   `,
+  // 2: login for the two partners
+  `
+  CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    name TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE sessions (
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX idx_sessions_user ON sessions(user_id);
+  `,
 ]
 
 let instance: Database.Database | null = null

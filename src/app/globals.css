@@ -180,7 +180,7 @@ body { background: var(--desk); color: var(--text); font-family: var(--font); }
 .side__burger { display: none; }
 .side__nav a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: var(--fg-2); font-weight: 500; }
 .side__nav a:hover { background: var(--hover); color: var(--fg); }
-.side__nav a.is-active { background: var(--active); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent); }
+.side__nav a.is-active { background: var(--active); color: var(--fg); font-weight: 600; }
 .side__foot { margin-top: auto; padding: 12px 8px 0; }
 
 /* Theme switch */

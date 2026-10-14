@@ -49,7 +49,7 @@ export default function Sidebar({ userName }: { userName: string }) {
   return (
     <aside className="side">
       <Link href="/" className="side__brand" aria-label="Digital Dive HQ, dashboard">
-        <Mark className="side__mark" disc="#FF5A1F" glyph="#fff" label={null} />
+        <Mark className="side__mark" disc="#FF5A1F" glyph="currentColor" label={null} />
         <span>Digital Dive <em>HQ</em></span>
       </Link>
 
@@ -82,7 +82,7 @@ export default function Sidebar({ userName }: { userName: string }) {
         <div className="mnav__scrim" onClick={() => setOpen(false)} />
         <div className="mnav__panel" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="mnav__top">
-            <Mark className="mnav__mark" disc="#FF5A1F" glyph="#fff" label={null} />
+            <Mark className="mnav__mark" disc="#FF5A1F" glyph="currentColor" label={null} />
             <button ref={closeBtn} type="button" className="mnav__close" aria-label="Close menu" onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />

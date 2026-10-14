@@ -11,8 +11,8 @@ export default function QuotationDocument({ quotation, company }: { quotation: Q
   const totals = computeTotals(quotation.items, quotation.gstRateBps)
   const billing: [string, React.ReactNode][] = [
     ['Name', quotation.client.name],
-    ['Address', <Lines key="a" text={quotation.client.address} />],
   ]
+  if (quotation.client.address.some((l) => l.trim())) billing.push(['Address', <Lines key="a" text={quotation.client.address} />])
   if (quotation.client.tin) billing.push(['Customer TIN Number', quotation.client.tin])
   billing.push(['Date', <DocDate key="d" iso={quotation.issueDate} />])
   billing.push(['Valid Until', <DocDate key="v" iso={quotation.validUntil} />])

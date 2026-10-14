@@ -9,8 +9,8 @@ export default function InvoiceDocument({ invoice, company }: { invoice: Invoice
   const bank = company.bankAccounts[invoice.currency]
   const billing: [string, React.ReactNode][] = [
     ['Name', invoice.client.name],
-    ['Address', <Lines key="a" text={invoice.client.address} />],
   ]
+  if (invoice.client.address.some((l) => l.trim())) billing.push(['Address', <Lines key="a" text={invoice.client.address} />])
   if (invoice.client.tin) billing.push(['Customer TIN Number', invoice.client.tin])
   billing.push(['Invoice Date', <DocDate key="d" iso={invoice.issueDate} />])
   billing.push(['Due Date', <DocDate key="u" iso={invoice.dueDate} />])

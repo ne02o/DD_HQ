@@ -17,6 +17,8 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
+/* Stop iPhone Safari from enlarging text it thinks is too small (it was blowing up the totals on invoices). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { background: var(--desk); color: var(--text); font-family: var(--font); }
 
 /* ---------- Preview chrome (screen only) ---------- */
@@ -281,8 +283,16 @@ body { background: var(--desk); color: var(--text); font-family: var(--font); }
 }
 .docview__bar button:not(.btn):not(.link-btn):hover { background: var(--hover); }
 .docview__paper { padding-bottom: 8px; min-width: 0; }
-@media screen { .docview__paper .doc { zoom: var(--doc-zoom, 1); } }
 .docview__paper .doc { margin: 0 auto; }
+/* Narrow screens: the A4 page is drawn full size, then scaled down as a whole (Safari keeps hairlines
+   and type proportions this way; CSS zoom dropped borders and resized text on iPhone). Print ignores it. */
+@media screen {
+  .docview__paper { height: var(--doc-h, auto); overflow: hidden; }
+  .docview__scale { width: 210mm; margin: 0 auto; transform: scale(var(--doc-zoom, 1)); transform-origin: top left; }
+  .docview__paper[data-scaled] .docview__scale { margin: 0; }
+  .docview__scale .doc { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); }
+  .docview__scale .items th, .docview__scale .items td { border-width: 1px; }
+}
 
 /* Buttons */
 .btn {
@@ -325,6 +335,11 @@ body { background: var(--desk); color: var(--text); font-family: var(--font); }
 .grid-form .span-2 { grid-column: span 2; }
 .grid-form .span-all { grid-column: 1 / -1; }
 .form-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+
+/* iPhone date fields have a built-in minimum width and centred text; make them behave like other inputs */
+.app input[type='date'] { min-width: 0; max-width: 100%; display: block; -webkit-appearance: none; appearance: none; text-align: left; line-height: 36px; }
+.app input[type='date']::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.field { min-width: 0; }
 
 /* Login */
 .app--auth { display: grid; place-items: center; grid-template-columns: 1fr; padding: 24px 16px; }
@@ -388,7 +403,8 @@ body { background: var(--desk); color: var(--text); font-family: var(--font); }
 .pay__list .muted { font-size: 12px; }
 .pay__form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
 .pay__form h3 { margin: 0; font-size: 14px; font-weight: 600; }
-.pay__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pay__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.pay__row > * { min-width: 0; }
 
 .tag-led { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; color: var(--accent-ink); background: color-mix(in srgb, var(--accent) 13%, transparent); vertical-align: 1px; }
 .seg--field { display: inline-flex; align-self: flex-start; }
@@ -490,5 +506,6 @@ body { background: var(--desk); color: var(--text); font-family: var(--font); }
   .side, .docview__bar, .docview__aside, .mnav, .form-error { display: none !important; }
   .docview__split { display: block; }
   .main { padding: 0; }
-  .docview__paper { overflow: visible; padding: 0; }
+  .docview__paper { overflow: visible; padding: 0; height: auto !important; }
+  .docview__scale { transform: none !important; width: auto !important; }
 }
